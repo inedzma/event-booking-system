@@ -11,6 +11,10 @@ var services = new ServiceCollection()
 	.AddDbContext<EventBookingDbContext>()
 	.AddScoped<IUserRepository, UserRepository>()
 	.AddScoped<IUserService, UserService>()
+	.AddScoped<IEventRepository, EventRepository>()
+	.AddScoped<IEventService, EventService>()
+	.AddScoped<ITicketRepository, TicketRepository>()
+	.AddScoped<ITicketService, TicketService>()
 	.BuildServiceProvider();
 
 using (var scope = services.CreateScope())
@@ -41,5 +45,9 @@ if (currentUser == null)
 	return;
 }
 
-var mainMenu = new MainMenu(currentUser);
+var eventService = services.GetRequiredService<IEventService>();
+
+var ticketService = services.GetRequiredService<ITicketService>();
+
+var mainMenu = new MainMenu(currentUser, eventService, ticketService);
 mainMenu.Run();
