@@ -1,0 +1,17 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace EventBookingSystem.Core.Models
+{
+
+
+	public class Conference : Event
+	{
+		public string Topic { get; set; } = string.Empty;
+		public int NumberOfSpeakers { get; set; }
+
+		public override string GetEventDetails()
+			=> $"Conference '{Title}' — topic: {Topic}, speakers: {NumberOfSpeakers}";
+	}
+}
