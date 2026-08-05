@@ -7,6 +7,9 @@ namespace EventBookingSystem.Core.Data
 	{
 		public DbSet<User> Users { get; set; }
 		public DbSet<Event> Events { get; set; }
+		public DbSet<Concert> Concerts { get; set; }
+		public DbSet<Conference> Conferences { get; set; }
+		public DbSet<Workshop> Workshops { get; set; }
 		public DbSet<Booking> Bookings { get; set; }
 		public DbSet<Ticket> Tickets { get; set; }
 
