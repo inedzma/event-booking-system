@@ -9,12 +9,14 @@ namespace EventBookingSystem.Console.Menus
 		private readonly User _currentUser;
 		private readonly IEventService _eventService;
 		private readonly IBookingService _bookingService;
+		private readonly IReportService _reportService;
 
-		public AdminMenu(User currentUser, IEventService eventService, IBookingService bookingService)
+		public AdminMenu(User currentUser, IEventService eventService, IBookingService bookingService, IReportService reportService)
 		{
 			_currentUser = currentUser;
 			_eventService = eventService;
 			_bookingService = bookingService;
+			_reportService = reportService;
 		}
 
 		public void Run()
@@ -29,6 +31,7 @@ namespace EventBookingSystem.Console.Menus
 				System.Console.WriteLine("2. View All Events");
 				System.Console.WriteLine("3. Delete Event");
 				System.Console.WriteLine("4. View Pending Bookings");
+				System.Console.WriteLine("5. Reports and search");
 				System.Console.WriteLine("0. Logout");
 				System.Console.Write("\nChoose an option: ");
 
@@ -47,6 +50,10 @@ namespace EventBookingSystem.Console.Menus
 						break;
 					case "4":
 						ViewPendingBookings();
+						break;
+					case "5":
+						var reportMenu = new ReportMenu(_reportService);
+						reportMenu.Run();
 						break;
 					case "0":
 						exit = true;

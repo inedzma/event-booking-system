@@ -61,5 +61,12 @@ namespace EventBookingSystem.Core.Services
 				.Where(t => t.UserId == userId)
 				.ToList();
 		}
+
+		public List<Ticket> GetAllValidTickets()
+		{
+			return _ticketRepository.GetAll()
+				.Where(t => t.Status == TicketStatus.Valid)
+				.ToList();
+		}
 	}
 }

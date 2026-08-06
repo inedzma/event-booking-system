@@ -7,5 +7,7 @@ namespace EventBookingSystem.Core.Services
 		Ticket BuyTicket(int eventId, int userId, string categoryName);
 		void CancelTicket(int ticketId, int userId);
 		List<Ticket> GetUserTickets(int userId);
+
+		List<Ticket> GetAllValidTickets();
 	}
 }

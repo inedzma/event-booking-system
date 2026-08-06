@@ -10,20 +10,22 @@ namespace EventBookingSystem.Console.Menus
 		private readonly IEventService _eventService;
 		private readonly ITicketService _ticketService;
 		private readonly IBookingService _bookingService;
+		private readonly IReportService _reportService;
 
-		public MainMenu(User currentUser, IEventService eventService, ITicketService ticketService, IBookingService bookingService)
+		public MainMenu(User currentUser, IEventService eventService, ITicketService ticketService, IBookingService bookingService, IReportService reportService)
 		{
 			_currentUser = currentUser;
 			_eventService = eventService;
 			_ticketService = ticketService;
 			_bookingService = bookingService;
+			_reportService = reportService;
 		}
 
 		public void Run()
 		{
 			if (_currentUser.Role == UserRole.Admin)
 			{
-				var adminMenu = new AdminMenu(_currentUser, _eventService, _bookingService);
+				var adminMenu = new AdminMenu(_currentUser, _eventService, _bookingService, _reportService);
 				adminMenu.Run();
 			}
 			else

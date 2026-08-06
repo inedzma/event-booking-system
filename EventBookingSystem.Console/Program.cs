@@ -17,6 +17,7 @@ var services = new ServiceCollection()
 	.AddScoped<ITicketService, TicketService>()
 	.AddScoped<IBookingRepository, BookingRepository>()
 	.AddScoped<IBookingService, BookingService>()
+	.AddScoped<IReportService, ReportService>()
 	.BuildServiceProvider();
 
 using (var scope = services.CreateScope())
@@ -53,5 +54,7 @@ var ticketService = services.GetRequiredService<ITicketService>();
 
 var bookingService = services.GetRequiredService<IBookingService>();
 
-var mainMenu = new MainMenu(currentUser, eventService, ticketService, bookingService);
+var reportService = services.GetRequiredService<IReportService>();
+
+var mainMenu = new MainMenu(currentUser, eventService, ticketService, bookingService, reportService);
 mainMenu.Run();
