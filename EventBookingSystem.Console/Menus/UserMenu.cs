@@ -1,4 +1,5 @@
-﻿using EventBookingSystem.Core.Models;
+﻿using EventBookingSystem.Core.Enums;
+using EventBookingSystem.Core.Models;
 using EventBookingSystem.Core.Services;
 
 namespace EventBookingSystem.Console.Menus
@@ -8,12 +9,14 @@ namespace EventBookingSystem.Console.Menus
 		private readonly User _currentUser;
 		private readonly IEventService _eventService;
 		private readonly ITicketService _ticketService;
+		private readonly IBookingService _bookingService;
 
-		public UserMenu(User currentUser, IEventService eventService, ITicketService ticketService)
+		public UserMenu(User currentUser, IEventService eventService, ITicketService ticketService, IBookingService bookingService)
 		{
 			_currentUser = currentUser;
 			_eventService = eventService;
 			_ticketService = ticketService;
+			_bookingService = bookingService;
 		}
 
 		public void Run()
@@ -28,6 +31,7 @@ namespace EventBookingSystem.Console.Menus
 				System.Console.WriteLine("2. Buy Ticket");
 				System.Console.WriteLine("3. My Tickets");
 				System.Console.WriteLine("4. Cancel Ticket");
+				System.Console.WriteLine("5. Request Event Booking");
 				System.Console.WriteLine("0. Logout");
 				System.Console.Write("\nChoose an option: ");
 
@@ -46,6 +50,9 @@ namespace EventBookingSystem.Console.Menus
 						break;
 					case "4":
 						CancelTicket();
+						break;
+					case "5":
+						RequestBooking();
 						break;
 					case "0":
 						exit = true;
@@ -93,20 +100,33 @@ namespace EventBookingSystem.Console.Menus
 				return;
 			}
 
-			System.Console.Write("Enter price: ");
-			string priceInput = System.Console.ReadLine() ?? "";
-
-			if (!decimal.TryParse(priceInput, out decimal price))
+			Event ev;
+			try
 			{
-				System.Console.WriteLine("Invalid price.");
+				ev = _eventService.GetById(eventId);
+			}
+			catch (Exception ex)
+			{
+				System.Console.WriteLine($"\nError: {ex.Message}");
 				Pause();
 				return;
 			}
 
+			var options = ev.GetTicketOptions();
+
+			System.Console.WriteLine($"\nAvailable ticket categories for '{ev.Title}':");
+			foreach (var option in options)
+			{
+				System.Console.WriteLine($"- {option.Name}: {option.Price} KM");
+			}
+
+			System.Console.Write("\nEnter category name: ");
+			string category = System.Console.ReadLine() ?? "";
+
 			try
 			{
-				_ticketService.BuyTicket(_currentUser.Id, eventId, price);
-				System.Console.WriteLine("\nTicket purchased successfully!");
+				var ticket = _ticketService.BuyTicket(eventId, _currentUser.Id, category);
+				System.Console.WriteLine($"\nTicket purchased successfully! Category: {ticket.Category}, Price: {ticket.Price} KM");
 			}
 			catch (Exception ex)
 			{
@@ -121,7 +141,7 @@ namespace EventBookingSystem.Console.Menus
 			System.Console.Clear();
 			System.Console.WriteLine("=== MY TICKETS ===\n");
 
-			var tickets = _ticketService.GetTicketsByUser(_currentUser.Id);
+			var tickets = _ticketService.GetUserTickets(_currentUser.Id);
 
 			if (tickets.Count == 0)
 			{
@@ -131,7 +151,7 @@ namespace EventBookingSystem.Console.Menus
 			{
 				foreach (var t in tickets)
 				{
-					System.Console.WriteLine($"[{t.Id}] Event Id: {t.EventId} | Price: {t.Price} | Status: {t.Status} | Purchased: {t.PurchaseDate:dd.MM.yyyy}");
+					System.Console.WriteLine($"[{t.Id}] Event Id: {t.EventId} | Category: {t.Category} | Price: {t.Price} | Status: {t.Status} | Purchased: {t.PurchaseDate:dd.MM.yyyy}");
 				}
 			}
 
@@ -153,12 +173,80 @@ namespace EventBookingSystem.Console.Menus
 
 			try
 			{
-				_ticketService.CancelTicket(ticketId);
+				_ticketService.CancelTicket(ticketId, _currentUser.Id);
 				System.Console.WriteLine("\nTicket cancelled successfully!");
 			}
 			catch (Exception ex)
 			{
 				System.Console.WriteLine($"\nError: {ex.Message}");
+			}
+
+			Pause();
+		}
+
+		private void RequestBooking()
+		{
+			System.Console.Clear();
+			System.Console.WriteLine("=== REQUEST EVENT BOOKING ===\n");
+
+			System.Console.Write("Title: ");
+			string title = System.Console.ReadLine() ?? "";
+
+			System.Console.WriteLine("Category: 1. Concert  2. Conference  3. Workshop");
+			System.Console.Write("Choose category: ");
+			string? categoryInput = System.Console.ReadLine();
+
+			EventCategory category = categoryInput switch
+			{
+				"1" => EventCategory.Concert,
+				"2" => EventCategory.Conference,
+				"3" => EventCategory.Workshop,
+				_ => throw new ArgumentException("Nepoznata kategorija.")
+			};
+
+			System.Console.Write("Location: ");
+			string location = System.Console.ReadLine() ?? "";
+
+			System.Console.Write("Capacity: ");
+			if (!int.TryParse(System.Console.ReadLine(), out int capacity))
+			{
+				System.Console.WriteLine("Invalid capacity.");
+				Pause();
+				return;
+			}
+
+			bool booked = false;
+
+			while (!booked)
+			{
+				System.Console.Write("\nDate (dd.MM.yyyy): ");
+				string dateInput = System.Console.ReadLine() ?? "";
+
+				if (!DateTime.TryParseExact(dateInput, "dd.MM.yyyy", null,
+						System.Globalization.DateTimeStyles.None, out DateTime date))
+				{
+					System.Console.WriteLine("Invalid date format. Try again.");
+					continue;
+				}
+
+				if (!_eventService.IsDateAvailable(date, location))
+				{
+					System.Console.WriteLine("That date is not available at this location. Please choose another date.");
+					continue;
+				}
+
+				try
+				{
+					_bookingService.RequestBooking(_currentUser.Id, title, category, date, location, capacity);
+					System.Console.WriteLine("\nDate is available! Booking request submitted for admin approval.");
+					booked = true;
+				}
+				catch (Exception ex)
+				{
+					System.Console.WriteLine($"\nError: {ex.Message}");
+					Pause();
+					return;
+				}
 			}
 
 			Pause();

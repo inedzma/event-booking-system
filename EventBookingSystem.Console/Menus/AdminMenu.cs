@@ -1,4 +1,5 @@
-﻿using EventBookingSystem.Core.Models;
+﻿using EventBookingSystem.Core.Enums;
+using EventBookingSystem.Core.Models;
 using EventBookingSystem.Core.Services;
 
 namespace EventBookingSystem.Console.Menus
@@ -7,11 +8,13 @@ namespace EventBookingSystem.Console.Menus
 	{
 		private readonly User _currentUser;
 		private readonly IEventService _eventService;
+		private readonly IBookingService _bookingService;
 
-		public AdminMenu(User currentUser, IEventService eventService)
+		public AdminMenu(User currentUser, IEventService eventService, IBookingService bookingService)
 		{
 			_currentUser = currentUser;
 			_eventService = eventService;
+			_bookingService = bookingService;
 		}
 
 		public void Run()
@@ -25,6 +28,7 @@ namespace EventBookingSystem.Console.Menus
 				System.Console.WriteLine("1. Create Event");
 				System.Console.WriteLine("2. View All Events");
 				System.Console.WriteLine("3. Delete Event");
+				System.Console.WriteLine("4. View Pending Bookings");
 				System.Console.WriteLine("0. Logout");
 				System.Console.Write("\nChoose an option: ");
 
@@ -40,6 +44,9 @@ namespace EventBookingSystem.Console.Menus
 						break;
 					case "3":
 						DeleteEvent();
+						break;
+					case "4":
+						ViewPendingBookings();
 						break;
 					case "0":
 						exit = true;
@@ -82,7 +89,7 @@ namespace EventBookingSystem.Console.Menus
 					case "1":
 						System.Console.Write("Performer: ");
 						string performer = System.Console.ReadLine() ?? "";
-						_eventService.CreateConcert(title, date, location, capacity, performer);
+						_eventService.CreateConcert(_currentUser.Id, title, date, location, capacity, performer);
 						break;
 
 					case "2":
@@ -90,13 +97,13 @@ namespace EventBookingSystem.Console.Menus
 						string topic = System.Console.ReadLine() ?? "";
 						System.Console.Write("Number of speakers: ");
 						int speakers = int.Parse(System.Console.ReadLine() ?? "");
-						_eventService.CreateConference(title, date, location, capacity, topic, speakers);
+						_eventService.CreateConference(_currentUser.Id, title, date, location, capacity, topic, speakers);
 						break;
 
 					case "3":
 						System.Console.Write("Max participants per group: ");
 						int maxGroup = int.Parse(System.Console.ReadLine() ?? "");
-						_eventService.CreateWorkshop(title, date, location, capacity, maxGroup);
+						_eventService.CreateWorkshop(_currentUser.Id, title, date, location, capacity, maxGroup);
 						break;
 
 					default:
@@ -162,6 +169,86 @@ namespace EventBookingSystem.Console.Menus
 			catch (Exception ex)
 			{
 				System.Console.WriteLine($"Error: {ex.Message}");
+			}
+
+			Pause();
+		}
+
+		private void ViewPendingBookings()
+		{
+			System.Console.Clear();
+			System.Console.WriteLine("=== PENDING BOOKINGS ===\n");
+
+			var pending = _bookingService.GetPending();
+
+			if (pending.Count == 0)
+			{
+				System.Console.WriteLine("No pending booking requests.");
+				Pause();
+				return;
+			}
+
+			foreach (var b in pending)
+			{
+				System.Console.WriteLine($"[{b.Id}] {b.ProposedTitle} ({b.Category}) | {b.ProposedDate:dd.MM.yyyy} | {b.ProposedLocation} | Capacity: {b.ProposedCapacity} | UserId: {b.UserId}");
+			}
+
+			System.Console.Write("\nEnter Booking Id to approve/reject (or 0 to go back): ");
+			string input = System.Console.ReadLine() ?? "";
+
+			if (!int.TryParse(input, out int bookingId) || bookingId == 0)
+			{
+				return;
+			}
+
+			System.Console.Write("Approve (A) or Reject (R)? ");
+			string decision = (System.Console.ReadLine() ?? "").ToUpper();
+
+			try
+			{
+				if (decision == "A")
+				{
+					var booking = pending.First(b => b.Id == bookingId);
+
+					string? performer = null;
+					string? topic = null;
+					int? speakers = null;
+					int? maxGroup = null;
+
+					switch (booking.Category)
+					{
+						case EventCategory.Concert:
+							System.Console.Write("Performer: ");
+							performer = System.Console.ReadLine();
+							break;
+						case EventCategory.Conference:
+							System.Console.Write("Topic: ");
+							topic = System.Console.ReadLine();
+							System.Console.Write("Number of speakers: ");
+							speakers = int.Parse(System.Console.ReadLine() ?? "1");
+							break;
+						case EventCategory.Workshop:
+							System.Console.Write("Max participants per group: ");
+							maxGroup = int.Parse(System.Console.ReadLine() ?? "5");
+							break;
+					}
+
+					_bookingService.Approve(bookingId, performer, topic, speakers, maxGroup);
+					System.Console.WriteLine("\nBooking approved and event created!");
+				}
+				else if (decision == "R")
+				{
+					_bookingService.Reject(bookingId);
+					System.Console.WriteLine("\nBooking rejected.");
+				}
+				else
+				{
+					System.Console.WriteLine("Invalid decision.");
+				}
+			}
+			catch (Exception ex)
+			{
+				System.Console.WriteLine($"\nError: {ex.Message}");
 			}
 
 			Pause();

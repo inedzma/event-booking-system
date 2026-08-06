@@ -27,7 +27,7 @@ namespace EventBookingSystem.Core.Services
 				throw new ArgumentException("Datum eventa ne može biti u prošlosti.");
 		}
 
-		public Concert CreateConcert(string title, DateTime date, string location, int capacity, string performer)
+		public Concert CreateConcert(int organizerId, string title, DateTime date, string location, int capacity, string performer)
 		{
 			ValidateCommon(title, date, location, capacity);
 
@@ -36,6 +36,7 @@ namespace EventBookingSystem.Core.Services
 
 			var concert = new Concert
 			{
+				OrganizerId = organizerId,
 				Title = title,
 				Date = date,
 				Location = location,
@@ -47,7 +48,7 @@ namespace EventBookingSystem.Core.Services
 			return concert;
 		}
 
-		public Conference CreateConference(string title, DateTime date, string location, int capacity, string topic, int numberOfSpeakers)
+		public Conference CreateConference(int organizerId, string title, DateTime date, string location, int capacity, string topic, int numberOfSpeakers)
 		{
 			ValidateCommon(title, date, location, capacity);
 
@@ -59,6 +60,7 @@ namespace EventBookingSystem.Core.Services
 
 			var conference = new Conference
 			{
+				OrganizerId = organizerId,
 				Title = title,
 				Date = date,
 				Location = location,
@@ -71,7 +73,7 @@ namespace EventBookingSystem.Core.Services
 			return conference;
 		}
 
-		public Workshop CreateWorkshop(string title, DateTime date, string location, int capacity, int maxParticipantsPerGroup)
+		public Workshop CreateWorkshop(int organizerId, string title, DateTime date, string location, int capacity, int maxParticipantsPerGroup)
 		{
 			ValidateCommon(title, date, location, capacity);
 
@@ -80,6 +82,7 @@ namespace EventBookingSystem.Core.Services
 
 			var workshop = new Workshop
 			{
+				OrganizerId = organizerId,
 				Title = title,
 				Date = date,
 				Location = location,
@@ -106,5 +109,14 @@ namespace EventBookingSystem.Core.Services
 		{
 			_eventRepository.Delete(id);
 		}
+
+		public bool IsDateAvailable(DateTime date, string location)
+		{
+			return !_eventRepository.GetAll()
+				.Any(e => e.Date.Date == date.Date &&
+						  e.Location.Equals(location, StringComparison.OrdinalIgnoreCase));
+		}
 	}
+
+
 }

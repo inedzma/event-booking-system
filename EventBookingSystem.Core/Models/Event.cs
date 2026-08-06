@@ -14,5 +14,7 @@
 		public List<Ticket> Tickets { get; set; } = new();
 
 		public abstract string GetEventDetails();
+
+		public abstract List<TicketOption> GetTicketOptions();
 	}
 }

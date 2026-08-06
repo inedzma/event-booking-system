@@ -10,5 +10,13 @@ namespace EventBookingSystem.Core.Models
 
 		public override string GetEventDetails()
 			=> $"Concert '{Title}' — performer: {Performer}";
+		public override List<TicketOption> GetTicketOptions() => new()
+		{
+			new TicketOption("Fan Zone", 20),
+			new TicketOption("Tribina", 35),
+			new TicketOption("Parter", 50),
+			new TicketOption("VIP", 80)
+		};
 	}
+
 }

@@ -10,5 +10,13 @@ namespace EventBookingSystem.Core.Models
 
 		public override string GetEventDetails()
 			=> $"Workshop '{Title}' — max group size: {MaxParticipantsPerGroup}";
+
+		public override List<TicketOption> GetTicketOptions() => new()
+		{
+			new TicketOption("Standard", 25),
+			new TicketOption("With Materials", 40)
+		};
 	}
+
+
 }
