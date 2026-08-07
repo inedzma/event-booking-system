@@ -12,14 +12,23 @@ namespace EventBookingSystem.Console.Menus
 			_userService = userService;
 		}
 
+		public bool WantsToExit { get; private set; } = false;
+
 		public User? Run()
 		{
 			System.Console.Clear();
 			System.Console.WriteLine("=== EVENT BOOKING SYSTEM ===");
 			System.Console.WriteLine("1. Login");
 			System.Console.WriteLine("2. Register");
+			System.Console.WriteLine("0. Exit");
 			System.Console.Write("Choose an option: ");
 			string? choice = System.Console.ReadLine();
+
+			if (choice == "0")
+			{
+				WantsToExit = true;
+				return null;
+			}
 
 			return choice switch
 			{

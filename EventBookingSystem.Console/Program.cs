@@ -39,22 +39,31 @@ using (var scope = services.CreateScope())
 }
 
 var userService = services.GetRequiredService<IUserService>();
-
-var authMenu = new AuthMenu(userService);
-var currentUser = authMenu.Run();
-
-if (currentUser == null)
-{
-	return;
-}
-
 var eventService = services.GetRequiredService<IEventService>();
-
 var ticketService = services.GetRequiredService<ITicketService>();
-
 var bookingService = services.GetRequiredService<IBookingService>();
-
 var reportService = services.GetRequiredService<IReportService>();
 
-var mainMenu = new MainMenu(currentUser, eventService, ticketService, bookingService, reportService);
-mainMenu.Run();
+bool exitApp = false;
+
+while (!exitApp)
+{
+	var authMenu = new AuthMenu(userService);
+	var currentUser = authMenu.Run();
+
+	if (authMenu.WantsToExit)
+	{
+		exitApp = true;
+		continue;
+	}
+
+	if (currentUser == null)
+	{
+		continue;
+	}
+
+	var mainMenu = new MainMenu(currentUser, eventService, ticketService, bookingService, reportService);
+	mainMenu.Run();
+}
+
+System.Console.WriteLine("\nGoodbye!");

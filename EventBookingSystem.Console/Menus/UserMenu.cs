@@ -71,26 +71,51 @@ namespace EventBookingSystem.Console.Menus
 			System.Console.WriteLine("=== AVAILABLE EVENTS ===\n");
 
 			var events = _eventService.GetAll();
+			var tickets = _ticketService.GetAllValidTickets();
 
 			if (events.Count == 0)
 			{
 				System.Console.WriteLine("No events available.");
-			}
-			else
-			{
-				foreach (var ev in events)
-				{
-					System.Console.WriteLine($"[{ev.Id}] {ev.GetEventDetails()} | {ev.Date:dd.MM.yyyy} | {ev.Location}");
-				}
+				Pause();
+				return;
 			}
 
-			Pause();
+			foreach (var ev in events)
+			{
+				int sold = tickets.Count(t => t.EventId == ev.Id);
+				int remaining = ev.Capacity - sold;
+				System.Console.WriteLine($"[{ev.Id}] {ev.GetEventDetails()} | {ev.Date:dd.MM.yyyy} | {ev.Location} | Seats left: {remaining}/{ev.Capacity}");
+			}
+
+			System.Console.Write("\nWould you like to buy a ticket now? (y/n): ");
+			string answer = (System.Console.ReadLine() ?? "").ToLower();
+
+			if (answer == "y")
+			{
+				BuyTicket();
+			}
 		}
 
 		private void BuyTicket()
 		{
 			System.Console.Clear();
-			System.Console.Write("Enter Event Id: ");
+			System.Console.WriteLine("=== AVAILABLE EVENTS ===\n");
+
+			var events = _eventService.GetAll();
+
+			if (events.Count == 0)
+			{
+				System.Console.WriteLine("No events available.");
+				Pause();
+				return;
+			}
+
+			foreach (var e in events)
+			{
+				System.Console.WriteLine($"[{e.Id}] {e.Title} — {e.Date:dd.MM.yyyy}");
+			}
+
+			System.Console.Write("\nEnter Event Id: ");
 			string input = System.Console.ReadLine() ?? "";
 
 			if (!int.TryParse(input, out int eventId))
@@ -151,7 +176,7 @@ namespace EventBookingSystem.Console.Menus
 			{
 				foreach (var t in tickets)
 				{
-					System.Console.WriteLine($"[{t.Id}] Event Id: {t.EventId} | Category: {t.Category} | Price: {t.Price} | Status: {t.Status} | Purchased: {t.PurchaseDate:dd.MM.yyyy}");
+					System.Console.WriteLine($"[{t.Id}] Event Id: {t.EventId} | Category: {t.Category} | Price: {t.Price:F2} | Status: {t.Status} | Purchased: {t.PurchaseDate:dd.MM.yyyy}");
 				}
 			}
 
@@ -161,7 +186,25 @@ namespace EventBookingSystem.Console.Menus
 		private void CancelTicket()
 		{
 			System.Console.Clear();
-			System.Console.Write("Enter Ticket Id to cancel: ");
+			System.Console.WriteLine("=== MY TICKETS ===\n");
+
+			var tickets = _ticketService.GetUserTickets(_currentUser.Id)
+				.Where(t => t.Status == Core.Enums.TicketStatus.Valid)
+				.ToList();
+
+			if (tickets.Count == 0)
+			{
+				System.Console.WriteLine("You have no active tickets to cancel.");
+				Pause();
+				return;
+			}
+
+			foreach (var t in tickets)
+			{
+				System.Console.WriteLine($"[{t.Id}] Event Id: {t.EventId} | Category: {t.Category} | Price: {t.Price:F2} KM | Purchased: {t.PurchaseDate:dd.MM.yyyy}");
+			}
+
+			System.Console.Write("\nEnter Ticket Id to cancel: ");
 			string input = System.Console.ReadLine() ?? "";
 
 			if (!int.TryParse(input, out int ticketId))

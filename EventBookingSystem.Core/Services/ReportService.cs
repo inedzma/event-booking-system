@@ -92,5 +92,20 @@ namespace EventBookingSystem.Core.Services
 
 			return allEvents.FirstOrDefault(e => e.Id == grouped.Key);
 		}
+
+		public List<(Event Event, int SoldTickets, int RemainingSeats)> AvailabilityReport()
+		{
+			var allEvents = _eventService.GetAll();
+			var allTickets = _ticketService.GetAllValidTickets();
+
+			return allEvents
+				.Select(e =>
+				{
+					int sold = allTickets.Count(t => t.EventId == e.Id);
+					return (Event: e, SoldTickets: sold, RemainingSeats: e.Capacity - sold);
+				})
+				.OrderBy(x => x.RemainingSeats)
+				.ToList();
+		}
 	}
 }

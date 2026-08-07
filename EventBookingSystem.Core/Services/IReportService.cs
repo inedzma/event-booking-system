@@ -10,5 +10,7 @@ namespace EventBookingSystem.Core.Services
 		Dictionary<string, int> GroupTicketsByEvent();
 		List<(Event Event, decimal TotalRevenue)> RevenueReport();
 		Event? MostPopularEvent();
+
+		List<(Event Event, int SoldTickets, int RemainingSeats)> AvailabilityReport();
 	}
 }

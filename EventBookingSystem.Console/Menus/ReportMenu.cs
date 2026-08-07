@@ -25,6 +25,7 @@ namespace EventBookingSystem.Console.Menus
 				System.Console.WriteLine("4. Group tickets by event");
 				System.Console.WriteLine("5. Revenue report");
 				System.Console.WriteLine("6. Most popular event");
+				System.Console.WriteLine("7. Ticket availability per event");
 				System.Console.WriteLine("0. Back");
 				System.Console.Write("\nChoose an option: ");
 
@@ -38,6 +39,7 @@ namespace EventBookingSystem.Console.Menus
 					case "4": GroupTicketsByEvent(); break;
 					case "5": RevenueReport(); break;
 					case "6": MostPopular(); break;
+					case "7": AvailabilityReport(); break;
 					case "0": back = true; break;
 					default:
 						System.Console.WriteLine("Invalid option.");
@@ -188,6 +190,29 @@ namespace EventBookingSystem.Console.Menus
 		{
 			System.Console.WriteLine("\nPress any key to continue...");
 			System.Console.ReadKey();
+		}
+
+		private void AvailabilityReport()
+		{
+			System.Console.Clear();
+			System.Console.WriteLine("=== TICKET AVAILABILITY ===\n");
+
+			var report = _reportService.AvailabilityReport();
+
+			if (report.Count == 0)
+			{
+				System.Console.WriteLine("No events found.");
+			}
+			else
+			{
+				foreach (var (ev, sold, remaining) in report)
+				{
+					string status = remaining == 0 ? "SOLD OUT" : $"{remaining} seat(s) left";
+					System.Console.WriteLine($"{ev.Title} | Capacity: {ev.Capacity} | Sold: {sold} | {status}");
+				}
+			}
+
+			Pause();
 		}
 	}
 }
