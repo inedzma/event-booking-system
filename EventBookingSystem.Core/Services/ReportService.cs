@@ -107,5 +107,12 @@ namespace EventBookingSystem.Core.Services
 				.OrderBy(x => x.RemainingSeats)
 				.ToList();
 		}
+
+		public List<Event> GetEventsByCategory(string category)
+		{
+			return _eventService.GetAll()
+				.Where(e => e.GetType().Name.Equals(category, StringComparison.OrdinalIgnoreCase))
+				.ToList();
+		}
 	}
 }

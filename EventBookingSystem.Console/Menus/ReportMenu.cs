@@ -97,12 +97,37 @@ namespace EventBookingSystem.Console.Menus
 			if (grouped.Count == 0)
 			{
 				System.Console.WriteLine("No events found.");
+				Pause();
+				return;
 			}
-			else
+
+			foreach (var kvp in grouped)
 			{
-				foreach (var kvp in grouped)
+				System.Console.WriteLine($"{kvp.Key}: {kvp.Value} event(s)");
+			}
+
+			System.Console.Write("\nWould you like to see the events in a specific category? (y/n): ");
+			string answer = (System.Console.ReadLine() ?? "").ToLower();
+
+			if (answer == "y")
+			{
+				System.Console.Write("Enter category name (Concert / Conference / Workshop): ");
+				string category = System.Console.ReadLine() ?? "";
+
+				var events = _reportService.GetEventsByCategory(category);
+
+				System.Console.WriteLine();
+
+				if (events.Count == 0)
 				{
-					System.Console.WriteLine($"{kvp.Key}: {kvp.Value} event(s)");
+					System.Console.WriteLine($"No events found for category '{category}'.");
+				}
+				else
+				{
+					foreach (var ev in events)
+					{
+						System.Console.WriteLine(EventFormatter.DetailedFormat(ev));
+					}
 				}
 			}
 

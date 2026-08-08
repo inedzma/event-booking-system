@@ -185,43 +185,56 @@ namespace EventBookingSystem.Console.Menus
 
 		private void CancelTicket()
 		{
-			System.Console.Clear();
-			System.Console.WriteLine("=== MY TICKETS ===\n");
+			bool done = false;
 
-			var tickets = _ticketService.GetUserTickets(_currentUser.Id)
-				.Where(t => t.Status == Core.Enums.TicketStatus.Valid)
-				.ToList();
-
-			if (tickets.Count == 0)
+			while (!done)
 			{
-				System.Console.WriteLine("You have no active tickets to cancel.");
-				Pause();
-				return;
-			}
+				System.Console.Clear();
+				System.Console.WriteLine("=== CANCEL TICKET ===\n");
 
-			foreach (var t in tickets)
-			{
-				System.Console.WriteLine($"[{t.Id}] Event Id: {t.EventId} | Category: {t.Category} | Price: {t.Price:F2} KM | Purchased: {t.PurchaseDate:dd.MM.yyyy}");
-			}
+				var tickets = _ticketService.GetUserTickets(_currentUser.Id)
+					.Where(t => t.Status == TicketStatus.Valid)
+					.ToList();
 
-			System.Console.Write("\nEnter Ticket Id to cancel: ");
-			string input = System.Console.ReadLine() ?? "";
+				if (tickets.Count == 0)
+				{
+					System.Console.WriteLine("You have no active tickets to cancel.");
+					Pause();
+					return;
+				}
 
-			if (!int.TryParse(input, out int ticketId))
-			{
-				System.Console.WriteLine("Invalid Ticket Id.");
-				Pause();
-				return;
-			}
+				foreach (var t in tickets)
+				{
+					System.Console.WriteLine($"[{t.Id}] Event Id: {t.EventId} | Category: {t.Category} | Price: {t.Price:F2} KM | Purchased: {t.PurchaseDate:dd.MM.yyyy}");
+				}
 
-			try
-			{
-				_ticketService.CancelTicket(ticketId, _currentUser.Id);
-				System.Console.WriteLine("\nTicket cancelled successfully!");
-			}
-			catch (Exception ex)
-			{
-				System.Console.WriteLine($"\nError: {ex.Message}");
+				System.Console.Write("\nEnter Ticket Id to cancel (or 0 to cancel): ");
+				string input = System.Console.ReadLine() ?? "";
+
+				if (input == "0")
+				{
+					return;
+				}
+
+				if (!int.TryParse(input, out int ticketId))
+				{
+					System.Console.WriteLine("\nInvalid Id. Press any key to try again...");
+					System.Console.ReadKey();
+					continue;
+				}
+
+				try
+				{
+					_ticketService.CancelTicket(ticketId, _currentUser.Id);
+					System.Console.WriteLine("\nTicket cancelled successfully!");
+					done = true;
+				}
+				catch (Exception ex)
+				{
+					System.Console.WriteLine($"\nError: {ex.Message}");
+					System.Console.WriteLine("Press any key to try again, or restart this menu to cancel...");
+					System.Console.ReadKey();
+				}
 			}
 
 			Pause();

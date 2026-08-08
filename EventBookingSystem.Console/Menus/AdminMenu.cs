@@ -157,25 +157,54 @@ namespace EventBookingSystem.Console.Menus
 
 		private void DeleteEvent()
 		{
-			System.Console.Clear();
-			System.Console.Write("Enter Event Id to delete: ");
-			string input = System.Console.ReadLine() ?? "";
+			bool done = false;
 
-			if (!int.TryParse(input, out int id))
+			while (!done)
 			{
-				System.Console.WriteLine("Invalid Id.");
-				Pause();
-				return;
-			}
+				System.Console.Clear();
+				System.Console.WriteLine("=== DELETE EVENT ===\n");
 
-			try
-			{
-				_eventService.Delete(id);
-				System.Console.WriteLine("Event deleted successfully!");
-			}
-			catch (Exception ex)
-			{
-				System.Console.WriteLine($"Error: {ex.Message}");
+				var events = _eventService.GetAll();
+
+				if (events.Count == 0)
+				{
+					System.Console.WriteLine("No events found.");
+					Pause();
+					return;
+				}
+
+				foreach (var ev in events)
+				{
+					System.Console.WriteLine($"[{ev.Id}] {ev.Title} — {ev.Date:dd.MM.yyyy}");
+				}
+
+				System.Console.Write("\nEnter Event Id to delete (or 0 to cancel): ");
+				string input = System.Console.ReadLine() ?? "";
+
+				if (input == "0")
+				{
+					return;
+				}
+
+				if (!int.TryParse(input, out int id))
+				{
+					System.Console.WriteLine("\nInvalid Id. Press any key to try again...");
+					System.Console.ReadKey();
+					continue;
+				}
+
+				try
+				{
+					_eventService.Delete(id);
+					System.Console.WriteLine("\nEvent deleted successfully!");
+					done = true;
+				}
+				catch (Exception ex)
+				{
+					System.Console.WriteLine($"\nError: {ex.Message}");
+					System.Console.WriteLine("Press any key to try again, or restart this menu to cancel...");
+					System.Console.ReadKey();
+				}
 			}
 
 			Pause();

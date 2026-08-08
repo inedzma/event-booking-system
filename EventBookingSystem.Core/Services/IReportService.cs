@@ -12,5 +12,7 @@ namespace EventBookingSystem.Core.Services
 		Event? MostPopularEvent();
 
 		List<(Event Event, int SoldTickets, int RemainingSeats)> AvailabilityReport();
+
+		List<Event> GetEventsByCategory(string category);
 	}
 }
